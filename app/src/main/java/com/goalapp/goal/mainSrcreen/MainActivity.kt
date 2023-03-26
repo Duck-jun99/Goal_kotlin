@@ -1,6 +1,5 @@
 package com.goalapp.goal.mainSrcreen
 
-import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
@@ -26,7 +25,6 @@ import com.google.android.gms.ads.initialization.InitializationStatus
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
-
 
 class MainActivity : AppCompatActivity() {
     private var todoViewModel: TodoViewModel? = null
@@ -75,8 +73,57 @@ class MainActivity : AppCompatActivity() {
         val intent = intent
         val goal1_name = intent.getStringExtra("big_goal_name")
         val small_goal_name = intent.getStringArrayListExtra("small_goal_name")
+
+
+        //todoViewModel
+
         todoViewModel = ViewModelProvider(this).get(TodoViewModel::class.java)
-        todoViewModel!!.allTodos.observe(this, object : Observer<List<Todo?>?> {
+        todoViewModel!!.getAll().observe(this, Observer{
+            fun onChanged(todos: List<Todo>) {
+                Log.e("todos사이즈 : ", todos.size.toString())
+                for (i in todos.indices) {
+                    if (todos[i].complete_time == null) {
+                        todo_item.add(todos[i])
+                        adapter.setItems(todo_item)
+                    }
+                }
+                Log.e("todo_item 사이즈 : ", todo_item.size.toString())
+                if (todo_item.size == 0) {
+                    val msg_plus_goal = findViewById<TextView>(R.id.msg_plus_goal)
+                    msg_plus_goal.text = "진행중인 목표가 없습니다!"
+                    img_plus_goal.visibility = View.VISIBLE
+                } else if (todo_item.size != 0) {
+                    for (i in todo_item.indices) {
+                        Log.e("onCreate: id() : ", todo_item[i].id.toString()) //1~
+                        Log.e("onCreate: biggoal : ", todo_item[i].big_Goal) //id 숫자에 맞는 대목표
+                        Log.e(
+                            "onCreate: smallgoal : ",
+                            todo_item[i].small_Goal.toString()
+                        ) //id 숫자에 맞는 소목표
+                        Log.e("smallgoal Size : ", todo_item[i].get_small_Goal_size().toString())
+                        Log.e("onCreate: stage : ", todo_item[i].stage.toString())
+                        Log.e("onCreate: maketime : ", todo_item[i].get_maketime().toString())
+                        Log.e("onCreate: comp_time : ", todo_item[i].complete_time.toString())
+                    }
+                }
+
+
+                adapter.setOnItemClickListener { holder, view, position ->
+                    val data = todo_item[position]
+                    Log.e("Todo data : ", data.toString())
+                    Log.e("Todo item position : ", position.toString())
+                    val intent = Intent(this@MainActivity, MainContent::class.java)
+                    intent.putExtra("Key", data.toString())
+                    intent.putExtra("position", position)
+                    intent.putStringArrayListExtra("small_goal_name", small_goal_name)
+                    startActivity(intent)
+                    finish()
+                }
+            }
+        })
+
+        /*
+        todoViewModel.allTodos.observe(this, object : Observer<List<Todo?>?> {
             override fun onChanged(todos: List<Todo>) {
                 Log.e("todos사이즈 : ", todos.size.toString())
                 for (i in todos.indices) {
@@ -117,6 +164,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+        */
+
+
         bottomNavigationView.setOnItemSelectedListener(NavigationBarView.OnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.goal_ing -> {
@@ -143,27 +193,10 @@ class MainActivity : AppCompatActivity() {
         })
     } //oncreate()
 
-    override fun onBackPressed() {   // 뒤로가기 누르면 다이얼로그 생성
-        val builder = AlertDialog.Builder(
-            this,
-            android.R.style.Theme_DeviceDefault_Light_Dialog
-        )
-        builder.setTitle("종료할까요?") // 다이얼로그 제목
-        builder.setCancelable(false) // 다이얼로그 화면 밖 터치 방지
-        builder.setPositiveButton("예") { dialog, which -> exit() }
-        builder.setNegativeButton("아니요") { dialog, which ->
-            Toast.makeText(
-                applicationContext,
-                "잘 생각했어요!",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-        builder.show()
-    }
-
-    fun exit() { // 종료
+    override fun onBackPressed() {
         super.onBackPressed()
     }
+
 
     companion object {
         var context: Context? = null

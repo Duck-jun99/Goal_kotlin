@@ -1,31 +1,69 @@
 package com.goalapp.goal.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity
-class Todo(
-    var big_Goal: String,
-    var small_Goal: ArrayList<String>,
-    var stage: Int,
-    var maketime: String,
-    var complete_time: String
-) {
+@Entity(tableName = "TODO")
+data class Todo(
     @PrimaryKey(autoGenerate = true)
-    var id = 0
+    @ColumnInfo(name = "Id") var id: Long = 0,
+    @ColumnInfo(name = "big_Goal") var big_Goal: String,
+    @ColumnInfo(name = "small_Goal") var small_Goal: ArrayList<String>,
+    @ColumnInfo(name = "stage") var stage: Int,
+    @ColumnInfo(name = "make_time") var make_time: String,
+    @ColumnInfo(name = "complete_time") var complete_time: String = "") {
 
-    fun getSmall_Goal_One(i: Int): String {
-        return small_Goal[i]
+    fun getId(): Int {
+        return id.toInt()
     }
 
-    val small_Goal_size: Int
-        get() = small_Goal.size
+    fun setId(id: Int) {
+        this.id = id.toLong()
+    }
 
-    fun setMake_time(Make_time: String) {
-        maketime = Make_time
+    fun get_big_Goal(): String? {
+        return big_Goal
+    }
+
+    fun set_big_Goal(big_Goal: String) {
+        this.big_Goal = big_Goal
+    }
+
+    fun get_small_Goal(): ArrayList<String> {
+        return small_Goal
+    }
+
+    fun get_small_Goal_One(i: Int): String? {
+        return small_Goal.get(i)
+    }
+
+    fun get_small_Goal_size(): Int {
+        return small_Goal.size
+    }
+
+
+
+    fun getStage(): Int {
+        return stage
+    }
+
+    fun setStage(stage: Int) {
+        this.stage = stage
+    }
+
+    fun get_maketime(): String? {
+        return make_time
+    }
+
+
+    fun get_complete_time(): String? {
+        return complete_time
     }
 
     override fun toString(): String {
         return big_Goal + small_Goal
     }
+
+
 }

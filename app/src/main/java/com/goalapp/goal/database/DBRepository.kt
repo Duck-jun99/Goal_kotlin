@@ -3,10 +3,33 @@ package com.goalapp.goal.database
 import android.app.Application
 import android.os.AsyncTask
 import androidx.lifecycle.LiveData
+import io.reactivex.rxjava3.core.Observable
 
-class DBRepository(application: Application?) {
-    private val todoDao: TodoDao
+class DBRepository(application: Application) {
+
+    private val todoDao: TodoDao by lazy{
+        val db = AppDatabase.getInstanece(application)!!
+        db.todoDao()
+    }
+    private val todos : LiveData<List<Todo>> by lazy { todoDao.getAll() }
+    fun getAll(): LiveData<List<Todo>> {return todos}
+
+    fun getTodoById(id: Long): LiveData<Todo> {
+        return todoDao.getTodoById(id)
+    }
+
+    fun insert(todo: Todo): Observable<Unit> {
+        return Observable.fromCallable { todoDao.insert(todo) }
+    }
+
+    fun delete(todo: Todo): Observable<Unit> {
+        return Observable.fromCallable { todoDao.delete(todo) }
+    }
+
+
+   /*
     val allTodos: LiveData<List<Todo>>
+
 
     init {
         val db: AppDatabase = AppDatabase.getIngAppDatabase(application)
@@ -74,4 +97,5 @@ class DBRepository(application: Application?) {
             return null
         }
     }
+    */
 }
