@@ -24,7 +24,7 @@
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-1761952265357802~9996807425" />
+            android:value="MY_APPLICATION_ID" />
 
         <activity
             android:name="com.goalapp.goal.mainSrcreen.Statistics"
