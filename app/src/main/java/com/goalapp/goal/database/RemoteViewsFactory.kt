@@ -1,0 +1,119 @@
+package com.goalapp.goal.database
+
+import android.content.Context
+import android.content.Intent
+import android.os.AsyncTask
+import android.widget.RemoteViews
+import android.widget.RemoteViewsService.RemoteViewsFactory
+import com.goalapp.goal.*
+
+import android.annotation.SuppressLint
+import com.goalapp.goal.mainSrcreen.MainActivity
+import com.goalapp.goal.widget.WidgetItem
+
+class RemoteViewsFactory(context: Context?) :
+    RemoteViewsFactory {
+    var context: Context? = null
+    var arrayList_Big: ArrayList<WidgetItem>? = null
+    var arrayList_Small: ArrayList<WidgetItem>? = null
+    private var allTodos: List<Todo>? = null
+    private val todoDao: TodoDao? = null
+
+    init {
+        this.context = context
+    }
+
+    //DB를 대신하여 arrayList_Big에 데이터를 추가하는 함수
+    fun setData() {
+        allTodos = (MainActivity.context as MainActivity).todo_item
+
+        /*DBAsyncTask dbAsyncTask = new DBAsyncTask();
+        dbAsyncTask.todoDao.getAllList();
+        allTodos = dbAsyncTask.todoDao.getAllList();*/arrayList_Big = ArrayList()
+        arrayList_Small = ArrayList()
+        for (i in allTodos.indices) {
+            if (allTodos.get(i).Complete_time == null) {
+                arrayList_Big!!.add(WidgetItem(i + 1, allTodos.get(i).big_Goal))
+                try {
+                    arrayList_Small!!.add(
+                        WidgetItem(
+                            i + 1,
+                            allTodos.get(i).getSmall_Goal_One(allTodos.get(i).stage)
+                        )
+                    )
+                } catch (e: IndexOutOfBoundsException) {
+                    arrayList_Small!!.add(WidgetItem(i + 1, "진행할 소목표가 없습니다."))
+                }
+            }
+        }
+    }
+
+    //이 모든게 필수 오버라이드 메소드
+    //실행 최초로 호출되는 함수
+    override fun onCreate() {
+        setData()
+    }
+
+    //항목 추가 및 제거 등 데이터 변경이 발생했을 때 호출되는 함수
+    //브로드캐스트 리시버에서 notifyAppWidgetViewDataChanged()가 호출 될 때 자동 호출
+    override fun onDataSetChanged() {
+        setData()
+    }
+
+    //마지막에 호출되는 함수
+    override fun onDestroy() {}
+
+    // 항목 개수를 반환하는 함수
+    override fun getCount(): Int {
+        return arrayList_Big!!.size
+    }
+
+    //각 항목을 구현하기 위해 호출, 매개변수 값을 참조하여 각 항목을 구성하기위한 로직이 담긴다.
+    // 항목 선택 이벤트 발생 시 인텐트에 담겨야 할 항목 데이터를 추가해주어야 하는 함수
+    @SuppressLint("ResourceType")
+    override fun getViewAt(position: Int): RemoteViews {
+        val listviewWidget = RemoteViews(context!!.packageName, R.layout.item_collection)
+        listviewWidget.setTextViewText(R.id.text_big, arrayList_Big!![position].content)
+        listviewWidget.setTextViewText(R.id.text_small, arrayList_Small!![position].content)
+
+        // 항목 선택 이벤트 발생 시 인텐트에 담겨야 할 항목 데이터를 추가해주는 코드
+        val dataIntent = Intent()
+        dataIntent.putExtra("item_id", arrayList_Big!![position]._id)
+        dataIntent.putExtra("item_data", arrayList_Big!![position].content)
+        listviewWidget.setOnClickFillInIntent(R.id.text_big, dataIntent)
+        listviewWidget.setOnClickFillInIntent(R.id.text_small, dataIntent)
+        //setOnClickFillInIntent 브로드캐스트 리시버에서 항목 선택 이벤트가 발생할 때 실행을 의뢰한 인텐트에 각 항목의 데이터를 추가해주는 함수
+        //브로드캐스트 리시버의 인텐트와 Extra 데이터가 담긴 인텐트를 함치는 역할을 한다.
+        return listviewWidget
+    }
+
+    //로딩 뷰를 표현하기 위해 호출, 없으면 null
+    override fun getLoadingView(): RemoteViews {
+        return null
+    }
+
+    //항목의 타입 갯수를 판단하기 위해 호출, 모든 항목이 같은 뷰 타입이라면 1을 반환하면 된다.
+    override fun getViewTypeCount(): Int {
+        return 1
+    }
+
+    //각 항목의 식별자 값을 얻기 위해 호출
+    override fun getItemId(position: Int): Long {
+        return 0
+    }
+
+    // 같은 ID가 항상 같은 개체를 참조하면 true 반환하는 함수
+    override fun hasStableIds(): Boolean {
+        return false
+    }
+
+    class DBAsyncTask : AsyncTask<Context?, Void?, List<Todo>>() {
+        private val todoDao: TodoDao? = null
+        protected override fun doInBackground(vararg context: Context): List<Todo> {
+            val List: List<Todo>
+            val db: AppDatabase = AppDatabase.getIngAppDatabase(context[0])
+            List = todoDao!!.allList
+            return List
+        }
+    }
+}
